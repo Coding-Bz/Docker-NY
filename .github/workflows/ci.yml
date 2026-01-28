@@ -1,32 +1,37 @@
-name: CI to Docker Hub
-
+name: Frontend CI/CD
+ 
 on:
-  push:
-    branches: [ "main" ]
-
+    push:
+      branches: [main]
+ 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push Backend
-        uses: docker/build-push-action@v4
-        with:
-          context: ./Backend/223_User_Profile_Backend
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
-
-      - name: Build and push Frontend
-        uses: docker/build-push-action@v4
-        with:
-          context: ./Frontend/223_User_Profile_Frontend
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
+    build:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+ 
+        - name: Login to Docker Hub
+          run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+ 
+        - name: Build image
+          run: docker build -t ${{ secrets.DOCKER_USERNAME }}/multi-user-frontend .
+ 
+        - name: Push to Docker Hub
+          run: docker push ${{ secrets.DOCKER_USERNAME }}/multi-user-frontend
+ 
+    deploy:
+      needs: build
+      runs-on: ubuntu-latest
+      steps:
+        - name: Deploy to server
+          uses: appleboy/ssh-action@master
+          with:
+            host: ${{ secrets.SSH_HOST }}
+            username: ${{ secrets.SSH_USERNAME }}
+            password: ${{ secrets.SSH_PASSWORD }}
+            port: ${{ secrets.SSH_PORT }}
+            script: |
+              docker pull ${{ secrets.DOCKER_USERNAME }}/multi-user-frontend
+              cd ~/app
+              docker-compose down
+              docker-compose up -d
