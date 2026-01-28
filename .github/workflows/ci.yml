@@ -11,8 +11,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Login to Docker Hub
-        # Tipp: Nutze lieber DOCKERHUB_TOKEN statt Passwort (Sicherheit!)
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Build image
         # Hier ist das Wichtige: Der Pfad am Ende der Zeile!
