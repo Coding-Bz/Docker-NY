@@ -22,20 +22,4 @@ jobs:
       - name: Push to Docker Hub
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            # Hier den Namen nutzen, den wir oben gepusht haben
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
-            cd ~/app
-            docker-compose down
-            docker-compose up -d
+ 
