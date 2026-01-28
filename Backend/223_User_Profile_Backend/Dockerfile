@@ -7,7 +7,7 @@ WORKDIR /home/gradle/src
 # Build the Spring Boot application using Gradle
 RUN gradle --no-daemon bootJar
 # Create a new image with the OpenJDK 18 base image
-FROM openjdk:18
+FROM amazoncorretto:18
 # Create a directory named /app
 RUN mkdir /app
 # Copy the built JAR file from the build stage to /app in the new image
@@ -16,3 +16,4 @@ COPY --from=build /home/gradle/src/build/libs/*.jar /app/spring-boot-application
 EXPOSE 8080
 # Run the Spring Boot application as a Java application with specified memory options
 CMD ["java", "-jar", "-Xmx4g", "/app/spring-boot-application.jar"]
+ 
