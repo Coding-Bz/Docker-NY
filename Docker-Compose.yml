@@ -1,20 +1,18 @@
 services:
   frontend:
-    image: fe
+    image: fe # Achte darauf, dass dies der Name deines gebauten Images ist
     container_name: frontend
     restart: unless-stopped
     depends_on:
       - backend
     ports:
       - "3000:80"
-    # Hinweis: Diese Variablen funktionieren nur, wenn dein Frontend-Code
-    # sie zur Laufzeit (Runtime) auslesen kann, was bei Nginx/Vite schwer ist.
     environment:
       - VITE_BASEURL=http://localhost:8080
       - VITE_LANGUAGE=de
       
   backend:
-    image: be
+    image: be # Achte darauf, dass dies der Name deines gebauten Images ist
     container_name: backend
     restart: unless-stopped
     depends_on:
@@ -38,11 +36,9 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
 
-      services:
-  # Deine bestehenden Services (Frontend/Backend) bleiben
-  
   nginx:
     image: nginx:latest
+    container_name: nginx_proxy
     ports:
       - "80:80"
     volumes:
