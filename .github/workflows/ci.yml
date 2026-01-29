@@ -37,3 +37,21 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest ./Backend/223_User_Profile_Backend
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
+
+
+deploy:
+      needs: build
+      runs-on: ubuntu-latest
+      steps:
+        - name: Deploy to server
+          uses: appleboy/ssh-action@master
+          with:
+            host: ${{ secrets.HOST }}
+            username: ${{ secrets.USERNAME }}
+            password: ${{ secrets.PASSWORD }}
+            port: ${{ secrets.PORT }}
+            script: |
+              docker pull ${{ secrets.DOCKER_USERNAME }}/frontend
+              cd ~/app
+              docker-compose down
+              docker-compose up -d
