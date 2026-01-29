@@ -39,7 +39,7 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
 
   deploy:
-      needs: build
+      needs: [frontend-build, backend-build]
       runs-on: ubuntu-latest
       steps:
         - name: Deploy to server
