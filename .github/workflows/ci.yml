@@ -38,8 +38,7 @@ jobs:
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest ./Backend/223_User_Profile_Backend
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
 
-
-deploy:
+  deploy:
       needs: build
       runs-on: ubuntu-latest
       steps:
