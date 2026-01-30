@@ -10,13 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
       - name: Build image
         run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest ./Frontend/223_User_Profile_Frontend
-
       - name: Push to Docker Hub
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
 
@@ -26,45 +23,43 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
       - name: Build and push backend
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest ./Backend/223_User_Profile_Backend
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
 
-  # --- Discord Notification ---
-  discord-notification:
+  # --- Deployment Job ---
+  deploy:
     needs: [frontend-build, backend-build]
     runs-on: ubuntu-latest
     steps:
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd ~/app
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
+
+  # --- Discord Notification ---
+  discord-notification:
+    needs: [deploy] # Benachrichtigung erst, wenn Deploy fertig ist
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
       - name: Discord notification
         uses: rjstone/discord-webhook-notify@v1
-        if: always()
         with:
-            severity: info
-            details: Deployment für Phase 4 erfolgreich!
-            webhookUrl: ${{ secrets.DISCORD }}
-
-
-  deploy:
-      needs: [frontend-build, backend-build]
-      runs-on: ubuntu-latest
-      steps:
-        - name: Deploy to server
-          uses: appleboy/ssh-action@master
-          with:
-            host: ${{ secrets.HOST }}
-            username: ${{ secrets.USERNAME }}
-            password: ${{ secrets.PASSWORD }}
-            port: ${{ secrets.PORT }}
-            script: |
-              docker pull ${{ secrets.DOCKER_USERNAME }}/frontend
-              cd ~/app
-              docker-compose down
-              docker-compose up -d
+          severity: info
+          details: 'Berlin Status: ${{ job.status }}'
+          webhookUrl: ${{ secrets.DISCORD }}
