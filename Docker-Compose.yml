@@ -1,47 +1,42 @@
 services:
-  frontend:
-    image: fe # Achte darauf, dass dies der Name deines gebauten Images ist
+
+frontend:
+    image: berracan/frontend:latest
     container_name: frontend
-    restart: unless-stopped
-    depends_on:
-      - backend
     ports:
-      - "3000:80"
+      - "8906:80"
     environment:
-      - VITE_BASEURL=http://localhost:8080
-      - VITE_LANGUAGE=de
-      
-  backend:
-    image: be # Achte darauf, dass dies der Name deines gebauten Images ist
+      VITE_BASEURL: http://backend:8907
+
+backend:
+    image: berracan/backend:latest
     container_name: backend
-    restart: unless-stopped
-    depends_on:
-      - db
     ports:
-      - "8080:8080"
+      - "8907:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - db
+portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: always
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/var/data
 
-  db:
+db:
     image: postgres:15-alpine
     container_name: db
-    restart: unless-stopped
-    ports:
-      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
-
-  nginx:
-    image: nginx:latest
-    container_name: nginx_proxy
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - frontend
+volumes:
+  pgdata:
